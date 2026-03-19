@@ -16,7 +16,11 @@ const storage = new CloudinaryStorage({
   params: {
     folder: 'ethiofit/avatars',
     allowed_formats: ['jpg', 'jpeg', 'png', 'webp'],
-    transformation: [{ width: 400, height: 400, crop: 'fill', gravity: 'face' }],
+    // Resize on upload, deliver as WebP with auto quality for fast loading
+    transformation: [
+      { width: 200, height: 200, crop: 'fill', gravity: 'face' },
+      { fetch_format: 'auto', quality: 'auto' },
+    ],
   },
 });
 
@@ -27,7 +31,9 @@ router.post('/avatar', auth, upload.single('avatar'), async (req, res) => {
   try {
     if (!req.file) return res.status(400).json({ error: 'No file uploaded' });
 
-    const avatarUrl = req.file.path;
+    // Inject f_auto,q_auto into the Cloudinary URL for fast delivery
+    let avatarUrl = req.file.path;
+    avatarUrl = avatarUrl.replace('/upload/', '/upload/f_auto,q_auto,w_200,h_200,c_fill/');
 
     await db.query(
       'UPDATE users SET avatar_url = $1 WHERE id = $2',
