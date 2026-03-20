@@ -1,8 +1,7 @@
 const router = require('express').Router();
 const cloudinary = require('cloudinary').v2;
 const multer = require('multer');
-const { CloudinaryStorage } = require('multer-storage-cloudinary');
-const db = require('../db');
+const db   = require('../db');
 const auth = require('../middleware/auth');
 
 cloudinary.config({
@@ -11,29 +10,36 @@ cloudinary.config({
   api_secret: process.env.CLOUDINARY_API_SECRET,
 });
 
-const storage = new CloudinaryStorage({
-  cloudinary,
-  params: {
-    folder: 'ethiofit/avatars',
-    allowed_formats: ['jpg', 'jpeg', 'png', 'webp'],
-    // Resize on upload, deliver as WebP with auto quality for fast loading
-    transformation: [
-      { width: 200, height: 200, crop: 'fill', gravity: 'face' },
-      { fetch_format: 'auto', quality: 'auto' },
-    ],
-  },
+// Use memory storage — upload buffer directly to Cloudinary via SDK
+const upload = multer({
+  storage: multer.memoryStorage(),
+  limits: { fileSize: 5 * 1024 * 1024 },
 });
-
-const upload = multer({ storage, limits: { fileSize: 5 * 1024 * 1024 } });
 
 // POST /api/profile/avatar
 router.post('/avatar', auth, upload.single('avatar'), async (req, res) => {
   try {
     if (!req.file) return res.status(400).json({ error: 'No file uploaded' });
 
-    // Inject f_auto,q_auto into the Cloudinary URL for fast delivery
-    let avatarUrl = req.file.path;
-    avatarUrl = avatarUrl.replace('/upload/', '/upload/f_auto,q_auto,w_200,h_200,c_fill/');
+    // Upload to Cloudinary with eager transformation — processed once, cached forever on CDN
+    const result = await new Promise((resolve, reject) => {
+      const stream = cloudinary.uploader.upload_stream(
+        {
+          folder: 'ethiofit/avatars',
+          public_id: `user_${req.user.userId}`, // stable ID = same URL on re-upload = instant cache hit
+          overwrite: true,
+          transformation: [
+            { width: 200, height: 200, crop: 'fill', gravity: 'face' },
+            { fetch_format: 'auto', quality: 'auto:low' },
+          ],
+        },
+        (err, result) => err ? reject(err) : resolve(result)
+      );
+      stream.end(req.file.buffer);
+    });
+
+    // secure_url is already the final optimized CDN URL — no string manipulation needed
+    const avatarUrl = result.secure_url;
 
     await db.query(
       'UPDATE users SET avatar_url = $1 WHERE id = $2',
