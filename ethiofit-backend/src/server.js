@@ -58,9 +58,11 @@ async function runMigrations() {
       activity         TEXT    NOT NULL,
       target_calories  INTEGER NOT NULL,
       tdee             INTEGER NOT NULL,
+      bmr              INTEGER,
       updated_at       TIMESTAMPTZ DEFAULT NOW(),
       UNIQUE (user_id)
     );
+    ALTER TABLE goals ADD COLUMN IF NOT EXISTS bmr INTEGER;
 
     CREATE TABLE IF NOT EXISTS foods (
       id         SERIAL PRIMARY KEY,
@@ -98,8 +100,14 @@ async function runMigrations() {
       calories_in  NUMERIC(8,2) NOT NULL DEFAULT 0,
       calories_out NUMERIC(8,2) NOT NULL DEFAULT 0,
       protein      NUMERIC(7,2) NOT NULL DEFAULT 0,
+      carbs        NUMERIC(7,2) NOT NULL DEFAULT 0,
+      fat          NUMERIC(7,2) NOT NULL DEFAULT 0,
+      fiber        NUMERIC(7,2) NOT NULL DEFAULT 0,
       UNIQUE (user_id, log_date)
     );
+    ALTER TABLE daily_logs ADD COLUMN IF NOT EXISTS carbs  NUMERIC(7,2) NOT NULL DEFAULT 0;
+    ALTER TABLE daily_logs ADD COLUMN IF NOT EXISTS fat    NUMERIC(7,2) NOT NULL DEFAULT 0;
+    ALTER TABLE daily_logs ADD COLUMN IF NOT EXISTS fiber  NUMERIC(7,2) NOT NULL DEFAULT 0;
   `);
   console.log('✅ Migrations applied');
 }
