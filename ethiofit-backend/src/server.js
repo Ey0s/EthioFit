@@ -10,6 +10,7 @@ const uploadRoutes    = require('./routes/upload');
 const goalRoutes      = require('./routes/goals');
 const foodRoutes      = require('./routes/foods');
 const exerciseRoutes  = require('./routes/exercises');
+const waterRoutes     = require('./routes/water');
 const activityRoutes  = require('./routes/activity');
 
 const app = express();
@@ -27,6 +28,7 @@ app.use('/api/profile',   uploadRoutes);
 app.use('/api/goals',     goalRoutes);
 app.use('/api/foods',     foodRoutes);
 app.use('/api/exercises', exerciseRoutes);
+app.use('/api/water',     waterRoutes);
 app.use('/api/activity',  activityRoutes);
 
 // Global error handler
@@ -108,6 +110,13 @@ async function runMigrations() {
     ALTER TABLE daily_logs ADD COLUMN IF NOT EXISTS carbs  NUMERIC(7,2) NOT NULL DEFAULT 0;
     ALTER TABLE daily_logs ADD COLUMN IF NOT EXISTS fat    NUMERIC(7,2) NOT NULL DEFAULT 0;
     ALTER TABLE daily_logs ADD COLUMN IF NOT EXISTS fiber  NUMERIC(7,2) NOT NULL DEFAULT 0;
+
+    CREATE TABLE IF NOT EXISTS water (
+      id        SERIAL PRIMARY KEY,
+      user_id   INTEGER      REFERENCES users(id) ON DELETE CASCADE,
+      amount    NUMERIC(7,1) NOT NULL,
+      logged_at TIMESTAMPTZ  DEFAULT NOW()
+    );
   `);
   console.log('✅ Migrations applied');
 }
