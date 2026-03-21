@@ -12,6 +12,7 @@ const foodRoutes      = require('./routes/foods');
 const exerciseRoutes  = require('./routes/exercises');
 const waterRoutes     = require('./routes/water');
 const activityRoutes  = require('./routes/activity');
+const aiPlansRoutes   = require('./routes/aiPlans');
 
 const app = express();
 
@@ -30,6 +31,7 @@ app.use('/api/foods',     foodRoutes);
 app.use('/api/exercises', exerciseRoutes);
 app.use('/api/water',     waterRoutes);
 app.use('/api/activity',  activityRoutes);
+app.use('/api/ai-plans',  aiPlansRoutes);
 
 // Global error handler
 app.use((err, req, res, next) => {
@@ -116,6 +118,15 @@ async function runMigrations() {
       user_id   INTEGER      REFERENCES users(id) ON DELETE CASCADE,
       amount    NUMERIC(7,1) NOT NULL,
       logged_at TIMESTAMPTZ  DEFAULT NOW()
+    );
+
+    CREATE TABLE IF NOT EXISTS ai_plans (
+      id           SERIAL PRIMARY KEY,
+      user_id      INTEGER REFERENCES users(id) ON DELETE CASCADE,
+      type         TEXT    NOT NULL CHECK (type IN ('meal','exercise')),
+      display_text TEXT    NOT NULL,
+      items        JSONB   NOT NULL DEFAULT '[]',
+      created_at   TIMESTAMPTZ DEFAULT NOW()
     );
   `);
   console.log('✅ Migrations applied');
