@@ -4,7 +4,6 @@ const db   = require('../db');
 const auth = require('../middleware/auth');
 const { rebuildDailyLog } = require('./foods');
 
-// GET /api/exercises?date=YYYY-MM-DD
 router.get('/', auth, async (req, res) => {
   try {
     const date = req.query.date || new Date().toISOString().slice(0, 10);
@@ -35,7 +34,7 @@ router.post('/', auth, [
 
   try {
     const { type, calories_burned, duration = 0, distance = 0, pace = 0, logged_at } = req.body;
-    const ts = logged_at ? new Date(logged_at) : new Date();
+    const ts = logged_at ? new Date(logged_at.replace(' ', 'T')) : new Date();
 
     const { rows } = await db.query(
       `INSERT INTO exercises (user_id, type, calories_burned, duration, distance, pace, logged_at)
