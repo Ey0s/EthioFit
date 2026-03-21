@@ -10,7 +10,7 @@ router.get('/', auth, async (req, res) => {
     const { rows } = await db.query(
       `SELECT * FROM foods
        WHERE user_id = $1 AND logged_at::date = $2::date
-       ORDER BY logged_at DESC`,
+       ORDER BY logged_at DESC`,``
       [req.user.userId, date]
     );
     res.json(rows);
@@ -35,7 +35,7 @@ router.post('/', auth, [
 
   try {
     const { name, calories, protein = 0, carbs = 0, fat = 0, fiber = 0, logged_at } = req.body;
-    const ts = logged_at ? new Date(logged_at) : new Date();
+    const ts = logged_at ? new Date(logged_at.replace(' ', 'T')) : new Date();
 
     const { rows } = await db.query(
       `INSERT INTO foods (user_id, name, calories, protein, carbs, fat, fiber, logged_at)
