@@ -27,7 +27,8 @@ router.post('/', auth, [
   if (!errors.isEmpty()) return res.status(422).json({ errors: errors.array() });
   try {
     const { amount, logged_at } = req.body;
-    const ts = logged_at ? new Date(logged_at.replace(' ', 'T')) : new Date();
+    const tsRaw = logged_at ? new Date(String(logged_at).replace(' ', 'T')) : new Date();
+    const ts = isNaN(tsRaw.getTime()) ? new Date() : tsRaw;
     const { rows } = await db.query(
       `INSERT INTO water (user_id, amount, logged_at) VALUES ($1,$2,$3) RETURNING *`,
       [req.user.userId, amount, ts]

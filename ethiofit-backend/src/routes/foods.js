@@ -35,7 +35,8 @@ router.post('/', auth, [
 
   try {
     const { name, calories, protein = 0, carbs = 0, fat = 0, fiber = 0, logged_at } = req.body;
-    const ts = logged_at ? new Date(logged_at.replace(' ', 'T')) : new Date();
+    const tsRaw = logged_at ? new Date(String(logged_at).replace(' ', 'T')) : new Date();
+    const ts = isNaN(tsRaw.getTime()) ? new Date() : tsRaw;
 
     const { rows } = await db.query(
       `INSERT INTO foods (user_id, name, calories, protein, carbs, fat, fiber, logged_at)

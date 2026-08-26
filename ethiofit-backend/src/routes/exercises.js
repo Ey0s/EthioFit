@@ -24,7 +24,7 @@ router.get('/', auth, async (req, res) => {
 router.post('/', auth, [
   body('type').trim().notEmpty(),
   body('calories_burned').isFloat({ min: 0 }),
-  body('duration').optional().isInt({ min: 0 }),
+  body('duration').optional().isFloat({ min: 0 }),
   body('distance').optional().isFloat({ min: 0 }),
   body('pace').optional().isFloat({ min: 0 }),
   body('logged_at').optional(),
@@ -34,7 +34,8 @@ router.post('/', auth, [
 
   try {
     const { type, calories_burned, duration = 0, distance = 0, pace = 0, logged_at } = req.body;
-    const ts = logged_at ? new Date(logged_at.replace(' ', 'T')) : new Date();
+    const tsRaw = logged_at ? new Date(String(logged_at).replace(' ', 'T')) : new Date();
+    const ts = isNaN(tsRaw.getTime()) ? new Date() : tsRaw;
 
     const { rows } = await db.query(
       `INSERT INTO exercises (user_id, type, calories_burned, duration, distance, pace, logged_at)
