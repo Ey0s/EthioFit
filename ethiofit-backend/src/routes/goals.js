@@ -21,9 +21,9 @@ router.get('/', auth, async (req, res) => {
 router.put('/', auth, [
   body('goal').isIn(['lose', 'maintain', 'gain']),
   body('activity').notEmpty(),
-  body('target_calories').isInt({ min: 500 }),
-  body('tdee').isInt({ min: 500 }),
-  body('bmr').optional().isInt({ min: 0 }),
+  body('target_calories').isFloat({ min: 500 }),
+  body('tdee').isFloat({ min: 500 }),
+  body('bmr').optional().isFloat({ min: 0 }),
 ], async (req, res) => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) return res.status(422).json({ errors: errors.array() });
@@ -41,7 +41,7 @@ router.put('/', auth, [
          bmr             = EXCLUDED.bmr,
          updated_at      = NOW()
        RETURNING *`,
-      [req.user.userId, goal, activity, target_calories, tdee, bmr]
+      [req.user.userId, goal, activity, Math.round(target_calories), Math.round(tdee), bmr ? Math.round(bmr) : null]
     );
     res.json(rows[0]);
   } catch (e) {
