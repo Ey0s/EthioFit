@@ -24,6 +24,8 @@ app.use(express.json());
 // Health check
 app.get('/health', (_, res) => res.json({ status: 'ok' }));
 
+// ── Auto-migrate on startup ── (handled in the runMigrations() at bottom of file)
+
 app.use('/api/auth',      authRoutes);
 app.use('/api/profile',   profileRoutes);
 app.use('/api/profile',   uploadRoutes);
