@@ -5,6 +5,7 @@ const cors    = require('cors');
 const db      = require('./db');
 
 const authRoutes      = require('./routes/auth');
+const authGoogleRoutes = require('./routes/authGoogle');
 const profileRoutes   = require('./routes/profile');
 const uploadRoutes    = require('./routes/upload');
 const goalRoutes      = require('./routes/goals');
@@ -26,7 +27,8 @@ app.get('/health', (_, res) => res.json({ status: 'ok' }));
 
 // ── Auto-migrate on startup ── (handled in the runMigrations() at bottom of file)
 
-app.use('/api/auth',      authRoutes);
+app.use('/api/auth',        authRoutes);
+app.use('/api/auth/google', authGoogleRoutes);
 app.use('/api/profile',   profileRoutes);
 app.use('/api/profile',   uploadRoutes);
 app.use('/api/goals',     goalRoutes);
